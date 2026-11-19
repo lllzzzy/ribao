@@ -286,9 +286,9 @@
                 </button>
                 <button onclick="switchTab('favorites')" id="nav-favorites" class="flex flex-col items-center justify-center gap-1 transition active:scale-95">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                     </svg>
-                    <span class="text-[11px] font-medium" id="navFavLabel">收藏</span>
+                    <span class="text-[11px] font-medium" id="navFavLabel">喜欢</span>
                 </button>
                 <button onclick="switchTab('history')" id="nav-history" class="flex flex-col items-center justify-center gap-1 transition active:scale-95">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -327,14 +327,9 @@
                             <span>返回</span>
                         </button>
                         <div class="flex items-center gap-2">
-                            <button onclick="toggleCurrentLike()" id="readerTopLikeBtn" class="p-1.5 rounded-full transition active:scale-90" style="background-color: var(--pill-bg); color: var(--pill-text);" title="喜欢这篇文章">
+                            <button onclick="toggleCurrentLike()" id="readerTopLikeBtn" class="p-1.5 rounded-full transition active:scale-90" style="background-color: var(--pill-bg); color: var(--pill-text);" title="喜欢这篇报道">
                                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                </svg>
-                            </button>
-                            <button onclick="toggleCurrentFavorite()" id="readerTopFavBtn" class="p-1.5 rounded-full transition active:scale-90" style="background-color: var(--pill-bg); color: var(--pill-text);" title="收藏这篇文章">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                                 </svg>
                             </button>
                             <button onclick="cycleFontSize()" id="readerBtnFont" class="px-2.5 py-1 text-xs font-medium rounded-full" style="background-color: var(--pill-bg); color: var(--pill-text);">
@@ -368,18 +363,12 @@
 
                 <!-- 阅读器底部互动（喜欢 / 收藏）与连读切换 -->
                 <div class="mt-12 pt-6 hairline-t">
-                    <div class="flex items-center justify-center gap-4 mb-6">
-                        <button onclick="toggleCurrentLike()" id="readerBottomLikeBtn" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-medium flex items-center justify-center gap-2 transition active:scale-[0.98]" style="border: 1px solid var(--border-hairline); color: var(--text-secondary);">
+                    <div class="mb-6">
+                        <button onclick="toggleCurrentLike()" id="readerBottomLikeBtn" class="w-full py-3 px-4 rounded-xl text-xs font-medium flex items-center justify-center gap-2 transition active:scale-[0.98]" style="border: 1px solid var(--border-hairline); color: var(--text-secondary);">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                             </svg>
-                            <span id="readerBottomLikeText">喜欢此类报道</span>
-                        </button>
-                        <button onclick="toggleCurrentFavorite()" id="readerBottomFavBtn" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-medium flex items-center justify-center gap-2 transition active:scale-[0.98]" style="border: 1px solid var(--border-hairline); color: var(--text-secondary);">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                            </svg>
-                            <span id="readerBottomFavText">加入收藏夹</span>
+                            <span id="readerBottomLikeText">喜欢这篇报道（保存在喜欢列表）</span>
                         </button>
                     </div>
 
@@ -1004,12 +993,12 @@
                 btnTopRefresh.onclick = refreshTopBatch;
                 updateNetworkAndCacheStatus();
             } else if (tabName === 'favorites') {
-                mainTitle.textContent = '收藏夹';
+                mainTitle.textContent = '喜欢';
                 categoryBar.classList.add('hidden');
                 feedFooter.classList.add('hidden');
                 btnHideRead.classList.add('hidden');
                 btnTopRefresh.classList.add('hidden');
-                document.getElementById('feedStatusText').textContent = `共收藏 ${state.favIds.size} 篇深度长文`;
+                document.getElementById('feedStatusText').textContent = `共喜欢 ${state.likedIds.size} 篇深度长文`;
             } else if (tabName === 'history') {
                 mainTitle.textContent = '阅读历史';
                 categoryBar.classList.add('hidden');
@@ -1087,18 +1076,12 @@
                 </div>
                 <div class="mt-3.5 flex items-center justify-between">
                     <span onclick="openArticleById('${article.id}')" class="text-[11px] cursor-pointer" style="color: var(--text-muted);">阅读全文（${article.paragraphs.length} 段长文）</span>
-                    <div class="flex items-center gap-3">
-                        <button onclick="toggleLikeById(event, '${article.id}')" class="flex items-center gap-1 py-1 px-2 rounded-full text-[11px] transition active:scale-90" style="color: ${likeColor}; background-color: var(--pill-bg);">
+                    <div class="flex items-center">
+                        <button onclick="toggleLikeById(event, '${article.id}')" class="flex items-center gap-1 py-1 px-2.5 rounded-full text-[11px] transition active:scale-90" style="color: ${likeColor}; background-color: var(--pill-bg);">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="${likeFill}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                             </svg>
                             <span>${isLiked ? '已喜欢' : '喜欢'}</span>
-                        </button>
-                        <button onclick="toggleFavoriteById(event, '${article.id}')" class="flex items-center gap-1 py-1 px-2 rounded-full text-[11px] transition active:scale-90" style="color: ${favColor}; background-color: var(--pill-bg);">
-                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="${favFill}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                            </svg>
-                            <span>${isFav ? '已收藏' : '收藏'}</span>
                         </button>
                     </div>
                 </div>
@@ -1137,14 +1120,14 @@
                     });
                 }
             } else if (state.activeTab === 'favorites') {
-                const favArray = [...state.favIds].reverse();
+                const favArray = [...state.likedIds].reverse();
                 state.currentVisibleListIds = favArray;
-                document.getElementById('feedStatusText').textContent = `共收藏 ${favArray.length} 篇深度长文`;
+                document.getElementById('feedStatusText').textContent = `共喜欢 ${favArray.length} 篇深度长文`;
 
                 if (favArray.length === 0) {
                     emptyBox.classList.remove('hidden');
-                    emptyTitle.textContent = '收藏夹还是空的';
-                    emptyDesc.textContent = '遇到值得反复品读的深度报道，点击「收藏」即可永久保存在本地。';
+                    emptyTitle.textContent = '还没有喜欢的长文';
+                    emptyDesc.textContent = '在阅读或浏览时点击红心「喜欢」，会自动保存在此随时重温。';
                 } else {
                     emptyBox.classList.add('hidden');
                     favArray.forEach(id => {
@@ -1191,34 +1174,19 @@
 
             if (state.likedIds.has(id)) {
                 state.likedIds.delete(id);
+                state.favIds.delete(id);
                 state.domainWeights[art.domain] = Math.max(0, (state.domainWeights[art.domain] || 1) - 1);
                 showToast('已取消喜欢');
             } else {
                 state.likedIds.add(id);
+                state.favIds.add(id);
                 state.domainWeights[art.domain] = (state.domainWeights[art.domain] || 0) + 1;
-                showToast(`已喜欢 · 后续将为你增加「${art.domain}」权重`);
+                showToast(`已加入喜欢 · 后续增加「${art.domain}」推荐`);
             }
 
             localStorage.setItem(STORAGE_KEYS.LIKED_IDS, JSON.stringify([...state.likedIds]));
-            localStorage.setItem(STORAGE_KEYS.DOMAIN_WEIGHTS, JSON.stringify(state.domainWeights));
-
-            if (!document.getElementById('readerView').classList.contains('hidden')) {
-                syncReaderActionButtons();
-            }
-            renderCurrentView();
-        }
-
-        function toggleFavoriteById(event, id) {
-            if (event) event.stopPropagation();
-            if (state.favIds.has(id)) {
-                state.favIds.delete(id);
-                showToast('已移出收藏夹');
-            } else {
-                state.favIds.add(id);
-                showToast('已加入收藏夹并离线保留');
-            }
-
             localStorage.setItem(STORAGE_KEYS.FAV_IDS, JSON.stringify([...state.favIds]));
+            localStorage.setItem(STORAGE_KEYS.DOMAIN_WEIGHTS, JSON.stringify(state.domainWeights));
 
             if (!document.getElementById('readerView').classList.contains('hidden')) {
                 syncReaderActionButtons();
@@ -1229,12 +1197,6 @@
         function toggleCurrentLike() {
             if (state.currentReadingId) {
                 toggleLikeById(null, state.currentReadingId);
-            }
-        }
-
-        function toggleCurrentFavorite() {
-            if (state.currentReadingId) {
-                toggleFavoriteById(null, state.currentReadingId);
             }
         }
 
@@ -1321,32 +1283,24 @@
             const id = state.currentReadingId;
             if (!id) return;
             const isLiked = state.likedIds.has(id);
-            const isFav = state.favIds.has(id);
 
             const topLike = document.getElementById('readerTopLikeBtn');
             const bottomLike = document.getElementById('readerBottomLikeBtn');
             const bottomLikeText = document.getElementById('readerBottomLikeText');
 
-            topLike.style.color = isLiked ? 'var(--like-active)' : 'var(--pill-text)';
-            topLike.querySelector('svg').setAttribute('fill', isLiked ? 'currentColor' : 'none');
-            bottomLike.style.color = isLiked ? 'var(--like-active)' : 'var(--text-secondary)';
-            bottomLike.style.borderColor = isLiked ? 'var(--like-active)' : 'var(--border-hairline)';
-            bottomLike.querySelector('svg').setAttribute('fill', isLiked ? 'currentColor' : 'none');
-            bottomLikeText.textContent = isLiked ? '已喜欢此报道' : '喜欢此类报道';
-
-            const topFav = document.getElementById('readerTopFavBtn');
-            const bottomFav = document.getElementById('readerBottomFavBtn');
-            const bottomFavText = document.getElementById('readerBottomFavText');
-
-            topFav.style.color = isFav ? 'var(--fav-active)' : 'var(--pill-text)';
-            topFav.querySelector('svg').setAttribute('fill', isFav ? 'currentColor' : 'none');
-            bottomFav.style.color = isFav ? 'var(--fav-active)' : 'var(--text-secondary)';
-            bottomFav.style.borderColor = isFav ? 'var(--fav-active)' : 'var(--border-hairline)';
-            bottomFav.querySelector('svg').setAttribute('fill', isFav ? 'currentColor' : 'none');
-            bottomFavText.textContent = isFav ? '已收入收藏夹' : '加入收藏夹';
+            if (topLike) {
+                topLike.style.color = isLiked ? 'var(--like-active)' : 'var(--pill-text)';
+                topLike.querySelector('svg').setAttribute('fill', isLiked ? 'currentColor' : 'none');
+            }
+            if (bottomLike && bottomLikeText) {
+                bottomLike.style.color = isLiked ? 'var(--like-active)' : 'var(--text-secondary)';
+                bottomLike.style.borderColor = isLiked ? 'var(--like-active)' : 'var(--border-hairline)';
+                bottomLike.querySelector('svg').setAttribute('fill', isLiked ? 'currentColor' : 'none');
+                bottomLikeText.textContent = isLiked ? '已喜欢（已保存在喜欢列表）' : '喜欢这篇报道（保存在喜欢列表）';
+            }
         }
 
-        function openArticleById(id) {
+        function openArticleById(id, pushHistory = true) {
             const article = state.cachedArticlesMap[id];
             if (!article) return;
 
@@ -1360,7 +1314,7 @@
             recordReadingHistory(id);
 
             const totalChars = countArticleChars(article);
-            const minutes = Math.max(1, Math.round(totalChars / 400));
+            const minutes = Math.max(1, Math.round(totalChars / 380));
 
             document.getElementById('readerCategory').textContent = `${article.domain} · ${article.category}`;
             document.getElementById('readerWordCount').textContent = `约 ${totalChars} 字`;
@@ -1379,13 +1333,80 @@
             readerView.scrollTop = 0;
             document.getElementById('readerProgressBar').style.width = '0%';
             document.body.style.overflow = 'hidden';
+
+            // 手机原生返回键/侧滑手势历史栈压入
+            if (pushHistory) {
+                history.pushState({ isReaderOpen: true, articleId: id }, '', '#article-' + id);
+            }
         }
 
-        function closeArticle() {
-            document.getElementById('readerView').classList.add('hidden');
+        function closeArticle(fromHistoryPop = false) {
+            const readerView = document.getElementById('readerView');
+            if (readerView.classList.contains('hidden')) return;
+
+            readerView.classList.add('hidden');
             document.body.style.overflow = '';
+            state.currentReadingId = null;
+
+            // 若由界面内返回按钮或侧滑拖拽关闭，则后退历史记录
+            if (!fromHistoryPop && window.location.hash.startsWith('#article-')) {
+                history.back();
+            }
+
             renderCurrentView();
         }
+
+        // 监听手机系统物理/手势返回键 (popstate)
+        window.addEventListener('popstate', (e) => {
+            const readerView = document.getElementById('readerView');
+            if (readerView && !readerView.classList.contains('hidden')) {
+                closeArticle(true);
+            }
+        });
+
+        // 手机屏幕左侧边划动返回手势 (Touch Edge Swipe-Back)
+        let edgeStartX = 0;
+        let edgeStartY = 0;
+        let isEdgeSwiping = false;
+
+        const readerViewEl = document.getElementById('readerView');
+        readerViewEl.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                edgeStartX = e.touches[0].clientX;
+                edgeStartY = e.touches[0].clientY;
+                // 从屏幕最左侧 48px 以内划入触发
+                if (edgeStartX <= 48) {
+                    isEdgeSwiping = true;
+                }
+            }
+        }, { passive: true });
+
+        readerViewEl.addEventListener('touchmove', (e) => {
+            if (!isEdgeSwiping) return;
+            const deltaX = e.touches[0].clientX - edgeStartX;
+            const deltaY = Math.abs(e.touches[0].clientY - edgeStartY);
+            // 判定为横向向右侧滑返回
+            if (deltaX > 0 && deltaX > deltaY) {
+                readerViewEl.style.transform = `translateX(${Math.min(deltaX, 220)}px)`;
+                readerViewEl.style.transition = 'none';
+            }
+        }, { passive: true });
+
+        readerViewEl.addEventListener('touchend', (e) => {
+            if (!isEdgeSwiping) return;
+            isEdgeSwiping = false;
+            const deltaX = e.changedTouches[0].clientX - edgeStartX;
+            readerViewEl.style.transition = 'transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)';
+            if (deltaX > 75) {
+                readerViewEl.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    readerViewEl.style.transform = '';
+                    closeArticle();
+                }, 200);
+            } else {
+                readerViewEl.style.transform = '';
+            }
+        });
 
         function openNextArticle() {
             const list = state.currentVisibleListIds.length > 0

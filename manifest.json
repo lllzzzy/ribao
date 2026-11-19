@@ -1,10 +1,12 @@
 {
+  "id": "ribao-pwa-app",
   "name": "日报",
   "short_name": "日报",
-  "description": "极简跨领域深度长文日报，每日定时自动抓取与离线阅读",
+  "description": "极简跨领域深度长文日报，全自动AI生成与离线阅读",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#FFFFFF",
   "theme_color": "#FFFFFF",
   "orientation": "portrait-primary",
@@ -34,6 +36,15 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icons/screenshot-1.png",
+      "sizes": "540x960",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "日报精选长文流"
     }
   ]
 }

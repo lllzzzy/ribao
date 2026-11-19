@@ -109,44 +109,39 @@ def load_existing_articles():
         return []
 
 
-def generate_long_articles(raw_topics, existing_titles):
-    """调用 DeepSeek 筛选跨领域话题并按排版规范生成深度长文"""
-    topics_text = "\n".join(
-        [f"- [{t['source']}] {t['title']}：{t.get('summary', '')}" for t in raw_topics[:30]]
-    )
-    recent_titles_text = "\n".join(existing_titles[:50])
+def call_deepseek_batch(topics_text, recent_titles_text, domain_plan, batch_num, total_batches):
+    domain_req_text = "、".join([f"{k}（{v}篇）" for k, v in domain_plan.items()])
+    target_count = sum(domain_plan.values())
 
-    system_prompt = """你是一位资深的深度报道总编。你的任务是从提供的多平台实时热点与时代切面中，挑选出最有社会切面、讨论价值和深度纵深的话题，撰写成跨领域深度新闻长文报道。
+    system_prompt = f"""你是一位顶级深度调查报道主编。你的任务是从多平台实时热点与时代切面中，挑选出极具社会切面、纵深感和讨论价值的话题，撰写高密度的跨领域深度新闻长文。
 
 你必须严格遵守以下不可违背的铁律：
-1. 每次输出恰好 15 篇报道，题材必须均匀分布在以下 5 个领域大类中（每个领域各 3 篇）：
-   - 社会热点
-   - 科技产业
-   - 历史纵深
-   - 设计与文化
-   - 游戏机制
-2. domain 字段必须严格为以上 5 个字符串之一，严禁自行创造其他分类大类！category 字段为更细颗粒度的具体切面标签（如：硬件与存储周期 / 独立游戏机制 / 城市毛细血管消费 等）。
-3. 避开已写过的近期标题，不写无营养的八卦琐碎和单一平台情绪口水账。
-4. 每篇文章正文必须由恰好 4 个自然的中文段落组成，总字数严格控制在 750 到 900 字之间。分析要有因果拆解、背景纵深与现实切面。
-5. 绝对禁止在正文中出现任何小标题、加粗引导词、编号（1. 2. 3.）或分点符号（• / -）。
-6. 绝对禁止使用“综上所述”、“总而言之”、“值得注意的是”、“引发了广泛关注”等模板化 AI 总结腔，也不要提及“据微博热搜”、“知乎网友表示”等信源元信息，直接以沉稳、克制、客观的深度新闻纪实口吻叙事。
-7. 标题长度严格控制在 16 到 26 个汉字之间，克制且信息量充实。
-8. 严格以合法的 JSON 对象格式输出，格式如下：
-{
+1. 本批次恰好输出 {target_count} 篇深度报道，领域严格按照分配要求：{domain_req_text}。
+2. domain 字段必须严格为指定的 5 大类之一（社会热点 / 科技产业 / 历史纵深 / 设计与文化 / 游戏机制），严禁自行创造大类！category 为更微观的具体切面标签（如：高带宽存储周期 / 独立游戏概率构筑 / 县域商业毛细血管 等）。
+3. 【字数扩充铁律】：每篇文章必须由 4 到 5 个扎实充实的自然中文段落组成，总字数严格控制在 1050 到 1350 字之间（每段约 250~320 字）。
+   - 第1段：现实切面与事件背景纵深，勾勒宏观场景（约250字）。
+   - 第2段：底层因果机制、产业链与商业利益/社会结构深度拆解（约280字）。
+   - 第3段：多方博弈冲突、深层张力与次生连锁反应（约280字）。
+   - 第4/5段：长远制度变迁、行业生态重构与克制冷峻的现实思考（约280字）。
+4. 绝对禁止在正文中出现任何小标题、加粗引导词、编号（1. 2. 3.）或分点符号（• / -）。
+5. 绝对禁止使用“综上所述”、“总而言之”、“值得注意的是”、“引发了广泛关注”等模板化 AI 总结腔，不提及平台名称，直接以沉稳克制、透彻扎实的客观深度报道口吻叙事。
+6. 标题长度严格控制在 18 到 28 个汉字之间，克制、精炼、信息量充实。
+7. 严格以合法的 JSON 对象格式输出，格式如下：
+{{
   "articles": [
-    {
-      "domain": "社会热点 / 科技产业 / 历史纵深 / 设计与文化 / 游戏机制 五选一",
-      "category": "细分子标签",
-      "title": "克制有信息量的长文标题（16-26字）",
+    {{
+      "domain": "指定的领域名称",
+      "category": "细分切面标签",
+      "title": "克制有信息量的长文标题（18-28字）",
       "paragraphs": [
-        "第一段正文（背景与现实引子，约180-220字）...",
-        "第二段正文（因果机制与产业链/社会深层拆解，约180-220字）...",
-        "第三段正文（多方博弈、次生影响与结构张力，约180-220字）...",
-        "第四段正文（长远考量、冷峻观察与开放思考，约180-220字）..."
+        "第一段正文（约250字）...",
+        "第二段正文（约280字）...",
+        "第三段正文（约280字）...",
+        "第四段正文（约280字）..."
       ]
-    }
+    }}
   ]
-}"""
+}} """
 
     user_prompt = f"""以下是实时抓取到的热点与时代话题素材：
 {topics_text}
@@ -154,9 +149,9 @@ def generate_long_articles(raw_topics, existing_titles):
 以下是近期已发布过的标题（请务必避开重复选题）：
 {recent_titles_text}
 
-请现在精心筛选并撰写 15 篇深度报道，严格按上述 5 个领域均衡输出合法 JSON。"""
+请现在精心撰写第 {batch_num}/{total_batches} 批次深度报道（本批次共 {target_count} 篇，严格按照领域：{domain_req_text}，每篇严格1050~1350字），返回标准 JSON。"""
 
-    print("   正在向 DeepSeek 发起并发生成请求...")
+    print(f"   [批次 {batch_num}/{total_batches}] 正在调用 DeepSeek 撰写 {target_count} 篇千字深度报道（{domain_req_text}）...")
     response = client.chat.completions.create(
         model=MODEL_NAME,
         messages=[
@@ -169,8 +164,6 @@ def generate_long_articles(raw_topics, existing_titles):
     )
 
     raw_content = response.choices[0].message.content.strip()
-
-    # 清理 markdown 代码块包裹
     if raw_content.startswith("```"):
         lines = raw_content.splitlines()
         if lines[0].startswith("```"):
@@ -181,6 +174,37 @@ def generate_long_articles(raw_topics, existing_titles):
 
     result = json.loads(raw_content)
     return result.get("articles", [])
+
+
+def generate_long_articles(raw_topics, existing_titles):
+    """分批次调用 DeepSeek 撰写扩充版千字深度长文，规避单次 Token 上限"""
+    topics_text = "\n".join(
+        [f"- [{t['source']}] {t['title']}：{t.get('summary', '')}" for t in raw_topics[:35]]
+    )
+    recent_titles_text = "\n".join(existing_titles[:50])
+
+    all_articles = []
+
+    # 批次 1：8 篇（社会热点 3 篇、科技产业 3 篇、历史纵深 2 篇）
+    plan_1 = {"社会热点": 3, "科技产业": 3, "历史纵深": 2}
+    try:
+        b1 = call_deepseek_batch(topics_text, recent_titles_text, plan_1, 1, 2)
+        all_articles.extend(b1)
+    except Exception as e:
+        print(f"   [错误] 批次 1 生成失败: {e}")
+
+    # 批次 2：7 篇（历史纵深 1 篇、设计与文化 3 篇、游戏机制 3 篇）
+    plan_2 = {"历史纵深": 1, "设计与文化": 3, "游戏机制": 3}
+    try:
+        # 将批次 1 生成的标题也加入去重列表
+        b1_titles = [a.get("title", "") for a in all_articles if a.get("title")]
+        extended_recent = "\n".join(b1_titles + existing_titles[:40])
+        b2 = call_deepseek_batch(topics_text, extended_recent, plan_2, 2, 2)
+        all_articles.extend(b2)
+    except Exception as e:
+        print(f"   [错误] 批次 2 生成失败: {e}")
+
+    return all_articles
 
 
 def sanitize_article(item, now_str):
