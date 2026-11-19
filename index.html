@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- PWA 移动端主屏幕配置 -->
+    <!-- PWA 移动端与桌面端沉浸式应用配置 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="日报">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="日报">
     <meta name="theme-color" content="#FFFFFF">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
     <title>日报</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -412,9 +417,17 @@
                     </div>
 
                     <div>
-                        <label class="block font-medium mb-1.5" style="color: var(--text-primary);">信源 articles.json 访问地址：</label>
-                        <input id="inputCloudUrl" type="text" placeholder="./data/articles.json 或 https://..." class="w-full px-3 py-2 rounded-xl text-xs outline-none transition font-mono" style="background-color: var(--pill-bg); color: var(--text-primary); border: 1px solid var(--border-hairline);" />
-                        <p class="text-[10px] mt-1.5" style="color: var(--text-muted);">网页与仓库一同部署在 GitHub Pages 时，使用默认 <code>./data/articles.json</code> 即可同域免跨域加载。</p>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block font-medium" style="color: var(--text-primary);">信源 articles.json 访问地址：</label>
+                        </div>
+                        <input id="inputCloudUrl" type="text" placeholder="./data/articles.json" class="w-full px-3 py-2 rounded-xl text-xs outline-none transition font-mono" style="background-color: var(--pill-bg); color: var(--text-primary); border: 1px solid var(--border-hairline);" />
+                        <div class="flex items-center gap-1.5 mt-2 flex-wrap text-[10px]">
+                            <span style="color: var(--text-muted);">快捷预设：</span>
+                            <button onclick="setCloudPreset('./data/articles.json')" class="px-2 py-0.5 rounded-full" style="background-color: var(--pill-bg); color: var(--pill-text);">同源推荐</button>
+                            <button onclick="setCloudPreset('https://raw.githubusercontent.com/lllzzzy/ribao/main/data/articles.json')" class="px-2 py-0.5 rounded-full" style="background-color: var(--pill-bg); color: var(--pill-text);">GitHub Raw</button>
+                            <button onclick="setCloudPreset('https://cdn.jsdelivr.net/gh/lllzzzy/ribao@main/data/articles.json')" class="px-2 py-0.5 rounded-full" style="background-color: var(--pill-bg); color: var(--pill-text);">jsDelivr CDN</button>
+                        </div>
+                        <p class="text-[10px] mt-1.5" style="color: var(--text-muted);">系统具备多级容灾机制：若首选地址超时，将自动轮询备用 CDN 并无缝回退本地离线缓存，确保页面永不白屏。</p>
                     </div>
 
                     <div id="cloudSyncStatusInfo" class="p-2.5 rounded-xl text-[11px] flex items-center justify-between" style="background-color: var(--pill-bg);">
@@ -1477,6 +1490,37 @@
             showToast('已重置为默认同源路径: ./data/articles.json');
         }
 
+        function setCloudPreset(url) {
+            state.cloudUrl = url;
+            localStorage.setItem(STORAGE_KEYS.CLOUD_URL, url);
+            const inputEl = document.getElementById('inputCloudUrl');
+            if (inputEl) inputEl.value = url;
+            showToast('已切换至信源地址');
+        }
+
+        async function fetchWithWaterfall(candidateUrls) {
+            for (const url of candidateUrls) {
+                if (!url) continue;
+                try {
+                    const cacheBuster = `_t=${Date.now()}`;
+                    const fetchUrl = url.includes('?') ? `${url}&${cacheBuster}` : `${url}?${cacheBuster}`;
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 6000);
+                    const res = await fetch(fetchUrl, { cache: 'no-cache', signal: controller.signal });
+                    clearTimeout(timeoutId);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (Array.isArray(data) && data.length > 0) {
+                            return { articles: data, sourceUrl: url };
+                        }
+                    }
+                } catch (e) {
+                    console.warn(`[信源拉取] 节点 ${url} 超时或异常，尝试备用节点...`);
+                }
+            }
+            return null;
+        }
+
         async function syncCloudArticles(isManual = false) {
             if (state.isSyncingCloud) return;
             const inputEl = document.getElementById('inputCloudUrl');
@@ -1485,24 +1529,29 @@
                 localStorage.setItem(STORAGE_KEYS.CLOUD_URL, state.cloudUrl);
             }
 
-            const targetUrl = state.cloudUrl || './data/articles.json';
+            // 构建多级故障回退候选列表（首选 -> 同源 -> GitHub Raw -> jsDelivr CDN）
+            const candidates = [
+                state.cloudUrl,
+                './data/articles.json',
+                'https://raw.githubusercontent.com/lllzzzy/ribao/main/data/articles.json',
+                'https://cdn.jsdelivr.net/gh/lllzzzy/ribao@main/data/articles.json'
+            ];
+            // 去重
+            const uniqueUrls = [...new Set(candidates.filter(Boolean))];
+
             state.isSyncingCloud = true;
             const syncBtn = document.getElementById('btnTriggerCloudSync');
             if (syncBtn) {
-                syncBtn.innerHTML = `<span>正在从云端拉取...</span>`;
+                syncBtn.innerHTML = `<span>正在拉取真实信源...</span>`;
             }
 
             try {
-                const cacheBuster = `_t=${Date.now()}`;
-                const fetchUrl = targetUrl.includes('?') ? `${targetUrl}&${cacheBuster}` : `${targetUrl}?${cacheBuster}`;
-                const res = await fetch(fetchUrl, { cache: 'no-cache' });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const articles = await res.json();
-
-                if (!Array.isArray(articles) || articles.length === 0) {
-                    throw new Error('未获取到有效文章数组');
+                const result = await fetchWithWaterfall(uniqueUrls);
+                if (!result) {
+                    throw new Error('所有信源节点均暂不可达，使用本地缓存');
                 }
 
+                const { articles, sourceUrl } = result;
                 let newCount = 0;
                 const nowStr = formatTimeHM(new Date());
                 const newIds = [];
@@ -1529,18 +1578,18 @@
 
                 saveArticleCacheToDisk();
                 const syncTimeStr = new Date().toLocaleString('zh-CN', { hour12: false });
-                localStorage.setItem(STORAGE_KEYS.CLOUD_LAST_SYNC, syncTimeStr);
+                localStorage.setItem(STORAGE_KEYS.CLOUD_LAST_SYNC, `${syncTimeStr} (${articles.length}篇)`);
                 updateCloudStatusDisplay();
                 updateNetworkAndCacheStatus();
                 renderCurrentView();
 
                 if (isManual) {
-                    showToast(newCount > 0 ? `成功同步 ${newCount} 篇新鲜长文！` : `云端已是最新，共 ${articles.length} 篇报道`);
+                    showToast(newCount > 0 ? `成功拉取 ${newCount} 篇真实热点报道！` : `信源已是最新，共 ${articles.length} 篇报道`);
                 }
             } catch (err) {
                 console.warn('云端信源拉取异常:', err);
                 if (isManual) {
-                    showToast('云端拉取失败，请检查网络或信源地址');
+                    showToast('暂时使用本地离线长文库（已自动防白屏）');
                 }
             } finally {
                 state.isSyncingCloud = false;
@@ -1572,6 +1621,17 @@
             updateNetworkAndCacheStatus();
             switchTab('feed');
         };
+    
+        // 注册 Service Worker 实现 PWA 离线运行与可安装特性
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then((reg) => {
+                    console.log('[PWA] Service Worker 注册成功:', reg.scope);
+                }).catch((err) => {
+                    console.warn('[PWA] Service Worker 注册失败:', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>
