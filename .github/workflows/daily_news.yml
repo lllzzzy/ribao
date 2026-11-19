@@ -1,0 +1,44 @@
+name: Auto Fetch & Generate Ribao News
+
+on:
+  schedule:
+    # 每天北京时间凌晨 02:00 自动抓取与生成（对应 UTC 时间 18:00）
+    - cron: '0 18 * * *'
+  workflow_dispatch: # 支持在 GitHub Actions 页面随时手动点击 Run workflow 立即生成测试
+
+permissions:
+  contents: write
+
+jobs:
+  build-news:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run news generator with DeepSeek
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL || 'https://api.deepseek.com' }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL || 'deepseek-chat' }}
+        run: python fetch_and_generate.py
+
+      - name: Commit and push updated JSON
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/articles.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-generate daily articles [skip ci]" && git push)
